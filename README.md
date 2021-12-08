@@ -28,13 +28,13 @@ The exercise (which took quite some time) was meant for me to learn
 **PL/I (F)**, as it is available under **MVS 3.8j** (cfr.,
 [TK4-](http://wotho.ethz.ch/tk4-/)) and **MTS** (cfr.,
 [MTS](http://www.try-mts.com)).  This is not the latest and greatest
-**PL/I** available; The *Enterprise* version from IBM is a different
+**PL/I** compiler available; the *Enterprise* version from IBM is a different
 beast altogether
 (cfr.,
 [IBM PL/I for z/OS](https://www.ibm.com/products/pli-compiler-zos);
 **PL/I (F)** is '70s technolgy.  Yet, it allows you to to very
 sophisticated things.  Studying **PL/I**  made me realize how many of the
-"modern" features we expect from a programmin language ecosystem were
+"modern" features we expect from a programming language ecosystem were
 actually already present in it 50 years ago, at the time of this
 writing.
 
@@ -104,7 +104,8 @@ A client program (e.g., the `tmtest.pl1` code) will start like
     
     END USETM;
     
-where `DDTM` is a "ddname" in the JCL (in **MVS**).
+where `DDTM` is a "*ddname*" in the JCL (in **MVS**) that you use to
+compile the library and run the test.
 
 The code for the library is in the dataset `treemaps.pli`, which, as
 you can see in the code, uses the batch compiler invocation by means
