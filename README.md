@@ -144,10 +144,10 @@ list.
   surprising ways.
   
 * Output (and input) is quite complex.  Even apparently "simple"
-  things in `PUT&nbsp;EDIT` statements come back to bite you with
+  things in `PUT EDIT` statements come back to bite you with
   initially unintelligible 2000 "cond codes".  The main thing I
   learned -- it worked for me, it may be wrong -- is that if you use a
-  `DO&nbsp;...&nbsp;TO` construct, you need to have the correct
+  `DO ... TO` construct, you need to have the correct
   repeated number of format directives.
   
 * There is no apparent way to check whether a macro variable has been
