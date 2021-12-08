@@ -1,0 +1,54 @@
+ /* -*- Mode: PL1 -*- */
+
+ /*
+  * tmtest.pl1
+  * 
+  * Maps implemented as BSTs.
+  *
+  * See COPYING for copyright and licensing information.
+  * 
+  * Test program.
+  */
+
+ /*
+  * TMTEST
+  */
+
+ TMTEST: PROC OPTIONS(MAIN);
+
+ %INCLUDE TREEMAPS(TMAPI);
+ %INCLUDE TREEMAPS(TMPRIN);
+
+ DCL (MOVIES_TM, TM_RES) POINTER;
+ 
+ MOVIES_TM = TMNEWTM('Movies');
+ 
+ PUT SKIP(3) LIST ('MOVIES Treemap is empty, as it should be.');
+
+ CALL TMPRNT(MOVIES_TM);
+
+ PUT SKIP(3) LIST ('');
+ 
+
+ TM_RES = TMINSER(MOVIES_TM, 2016, 'La La Land');
+ TM_RES = TMINSER(MOVIES_TM, 2000, 'Gladiator');
+ TM_RES = TMINSER(MOVIES_TM, 2021, 'The French Dispatch');
+ TM_RES = TMINSER(MOVIES_TM, 1980, 'The Blues Brothers');
+ TM_RES = TMINSER(MOVIES_TM, 1975, 'Jaws');
+ TM_RES = TMINSER(MOVIES_TM, 2017, 'Come un gatto in tangenziale');
+ TM_RES = TMINSER(MOVIES_TM, 1977, 'Star Wars: Episode IV, A New Hope');
+ TM_RES = TMINSER(MOVIES_TM, 1940, 'Fantasia');
+ TM_RES = TMINSER(MOVIES_TM, 1972, 'Solaris');
+ TM_RES = TMINSER(MOVIES_TM, 1968, '2001: A Space Odissey');
+ TM_RES = TMINSER(MOVIES_TM, 2018, 'Aquaman');
+ TM_RES = TMINSER(MOVIES_TM, 2011, 'Nessuno mi puo` giudicare');
+
+ PUT SKIP(3) LIST ('MOVIES Treemap is now the following.');
+
+ CALL TMPRNT(MOVIES_TM);
+
+ END TMTEST;
+
+ /*
+  * end of file -- tmtest.pl1
+  */
