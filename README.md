@@ -158,6 +158,20 @@ list.
   functions and subroutines) used within a block is visible.
   
 Of course there are many other ones.
+
+### ... and, in fact, here they are...
+
+After having worked on the first iteration of the code, I was told, by
+the kind (and patient) folks on the
+[pl1f-and-mvs38j](https://groups.io/g/pl1f-and-mvs38j) group, that
+there is *another* way to achieve nice modularity within a **single**
+procedure, by leveraging the `ENTRY` *statement*.  It took a while,
+interpreting the reasons why the **PL/I (F)** compiler and the loader
+were not cooperating, but eventually I succeded.  Hence you now have a
+`tmpkg.pl1` code that implements the *procedure-as-package* idiom. It
+works like a charm and I'd say it is the way to go because it solves
+many of the other problems that the setup with many pre-processor
+files actually raise.
   
   
 ## Where to Get Help
@@ -177,4 +191,4 @@ It helps keeping the entropy level at an acceptable level.
 
 Enjoy
 
-Marco Antoniotti 2021-12-08
+Marco Antoniotti 2021-12-21
