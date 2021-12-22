@@ -1,0 +1,345 @@
+ /* -*- Mode: PL1 -*- */
+ /*
+  * tmpkg.pl1
+  *
+  * Maps implemented as BSTs.
+  *
+  * Version with "one top proc with entries as a package".
+  *
+  * See COPYING for copyright and licensing information.
+  *
+  * Notes:
+  * PL/1 (F) requires external names to be 7 characters long; hence we
+  * cannot have the 31 character long identifiers that the specs seem to
+  * admit.
+  */
+
+ /*
+  * Tree maps procedures.
+  * =====================
+  */
+
+ /*
+  * tm_new_treemap --
+  */
+ %INCLUDE TREEMAPS(TMAPI);
+
+ TMPKG: PROCEDURE;
+
+ /*
+  * treemap
+  */
+ DCL 1 TREEMAP BASED(TMPTR),
+       2 ID CHAR(80),
+       2 ROOT POINTER;
+
+
+ /*
+  * node
+  */
+ DCL 1 NODE BASED(NPTR),
+       2 KEY FIXED BIN (15),
+       2 CONTENT CHAR(80),
+       2 LEFT  POINTER,
+       2 RIGHT POINTER;
+
+ DCL NDNEW ENTRY (FIXED BIN(15), CHAR(80), POINTER, POINTER)
+               RETURNS (POINTER);
+ 
+ DCL NDINSER ENTRY (POINTER, FIXED BINARY (15), CHAR (80))
+             RETURNS (POINTER);
+ 
+ DCL NDSRCH ENTRY (POINTER, FIXED BIN(15)) RETURNS (POINTER);
+ 
+ DCL NDPRNT ENTRY (POINTER, FIXED BIN(15));
+ 
+
+ /*
+  * Tree Map Procedures.
+  */
+
+ /*
+  * tm_new_treemap
+  */
+ 
+ TM_NEW_TREEMAP: PROCEDURE (TMID) RETURNS (POINTER);
+     DCL TMID CHAR(80);
+
+     DCL TM_AREA AREA (4000) STATIC;
+     DCL TM_PTR POINTER;
+
+     /* %INCLUDE TREEMAPS(TREEMAP); */
+
+     DCL NULL BUILTIN;
+
+     ALLOCATE TREEMAP IN (TM_AREA) SET (TM_PTR);
+     TM_PTR->TREEMAP.ID = TMID;
+     TM_PTR->TREEMAP.ROOT = NULL;
+     RETURN (TM_PTR);
+ END TM_NEW_TREEMAP;
+
+
+ /*
+  * tm_insert
+  */
+
+ TM_INSERT: PROCEDURE(TM, K, C) RETURNS (POINTER);
+     DCL TM POINTER;            /* The treemap */
+     DCL K  FIXED BINARY(15);   /* The key. */
+     DCL C  CHAR(80);           /* The content. */
+ 
+     /*
+     %INCLUDE TREEMAPS(TREEMAP);
+     %INCLUDE TREEMAPS(TMNODES);
+     */
+ 
+     DCL NEWROOT POINTER;
+     /*
+     DCL NDINSER ENTRY (POINTER, FIXED BINARY (15), CHAR (80))
+                 RETURNS (POINTER);
+     */
+
+     NEWROOT = NDINSER(TM->TREEMAP.ROOT, K, C);
+
+     /* PUT SKIP EDIT ('TM: TMINSER: new node ', NEWROOT->NODE.KEY)
+                      (A, F(4));
+      */
+
+     /* Need to FREE the old root, but that cannot be done easily. */
+     TM->TREEMAP.ROOT = NEWROOT;
+     RETURN (TM);
+ END TM_INSERT;
+
+
+ /*
+  * tm_search
+  *
+  * The function returns a boolean and sets, if a value associated to
+  * the key K is found, the parameter CONTENT_FOUND.
+  * Another way to code this function would be to return the value if
+  * found and to SIGNAL a condition if not.
+  */
+ TM_SEARCH: PROCEDURE(TM, K, CONTENT_FOUND) RETURNS (BIT(1));
+     DCL TM POINTER;                     /* The treemap. */
+     DCL K  FIXED BINARY(15);            /* The key. */
+     DCL CONTENT_FOUND CHAR(80);         /* The "out" parameter. */
+
+     /*
+     %INCLUDE TREEMAPS(TREEMAP);
+     %INCLUDE TREEMAPS(TMNODES);
+     */
+
+     DCL (TMROOT, N_FOUND) POINTER;
+     /* DCL NDSRCH ENTRY (POINTER, FIXED BIN(15)) RETURNS (POINTER); */
+     DCL NULL BUILTIN;
+
+     TMROOT = TM->TREEMAP.ROOT;
+     N_FOUND = NDSRCH(TMROOT, K);
+
+     IF N_FOUND = NULL THEN DO;
+         CONTENT_FOUND = '';
+         RETURN ('0'B);
+     END;
+     ELSE DO;
+         CONTENT_FOUND = N_FOUND->NODE.CONTENT;
+         RETURN ('1'B);
+     END;
+ END TM_SEARCH;
+
+
+ /*
+  * tm_print
+  */
+ TM_PRINT: PROCEDURE(TM);
+     DCL TM POINTER;            /* The treemap. */
+
+     /* %INCLUDE TREEMAPS(TREEMAP); */
+
+     /* DCL NDPRNT ENTRY (POINTER, FIXED BIN(15)); */
+
+     PUT SKIP LIST ('TREEMAPS ' || TM->TREEMAP.ID);
+     CALL NDPRNT(TM->TREEMAP.ROOT, 4);
+ END TM_PRINT;
+
+
+ /*
+  * Nodes procedures.
+  * =================
+  */
+
+ /*
+  * node_new_node
+  *
+  * The constructor of nodes.
+  *
+  * Notes:
+  * The nodes are allocated in a static area for the time being, this
+  * being an exercise in understanding the capabilities of the
+  * language.
+  */
+ NDNEW: PROCEDURE(K, C, L, R) RETURNS (POINTER);
+     DCL K FIXED BIN(15);       /* The key. */
+     DCL C CHAR(80);            /* The content. */
+     DCL (L, R) POINTER;        /* Left and right subtrees. */
+
+     /* %INCLUDE TREEMAPS(TMNODES); */
+     
+     DCL NODES AREA(24000) STATIC;
+     DCL NEW_NODE_PTR POINTER;
+
+
+     /* PUT SKIP EDIT ('TM: allocating node for ', K, '.')
+                      (A, F(4), A);
+      */
+
+     ALLOCATE NODE IN (NODES) SET (NEW_NODE_PTR);
+
+     /* PUT SKIP LIST ('TM: node allocated.'); */
+
+     NEW_NODE_PTR->NODE.KEY = K;
+     NEW_NODE_PTR->NODE.CONTENT = C;
+     NEW_NODE_PTR->NODE.LEFT = L;
+     NEW_NODE_PTR->NODE.RIGHT = R;
+
+     /* PUT SKIP LIST ('TM: about to return node...'); */
+
+     RETURN (NEW_NODE_PTR);
+ END NDNEW;
+
+
+ /*
+  * node_insert
+  */
+ NDINSER: PROCEDURE(N, K, C) RETURNS (POINTER) RECURSIVE;
+     DCL N POINTER;             /* The subtree root node. */
+     DCL K FIXED BIN(15);       /* The key. */
+     DCL C CHAR(80);            /* The content. */
+
+     /* %INCLUDE TREEMAPS(TMNODES); */
+
+     /*
+     DCL NDNEW ENTRY (FIXED BIN(15), CHAR(80), POINTER, POINTER)
+               RETURNS (POINTER);
+     DCL NDINSER ENTRY (POINTER, FIXED BIN(15), CHAR(80))
+                 RETURNS (POINTER);
+     */
+     DCL NULL BUILTIN;
+
+     IF N = NULL THEN
+         RETURN (NDNEW(K, C, NULL, NULL));
+     ELSE IF N->NODE.KEY < K THEN
+         RETURN (NDNEW(N->NODE.KEY,
+                       N->NODE.CONTENT,
+                       N->NODE.LEFT,
+                       NDINSER(N->NODE.RIGHT, K, C)));
+     ELSE IF N->NODE.KEY > K THEN
+         RETURN (NDNEW(N->NODE.KEY,
+                       N->NODE.CONTENT,
+                       NDINSER(N->NODE.LEFT, K, C),
+                       N->NODE.RIGHT));
+     ELSE
+         RETURN (N);
+ END NDINSER;
+
+
+ /*
+  * node_search
+  */
+ NDSRCH: PROCEDURE(N, K) RETURNS (POINTER) RECURSIVE;
+     DCL N POINTER;             /* The subtree root. */
+     DCL K FIXED BIN(15);       /* The key. */
+
+     /* %INCLUDE TREEMAPS(TMNODES); */
+
+     DCL NULL BUILTIN;
+     /* DCL NDSRCH ENTRY (POINTER, FIXED BIN(15)) RETURNS (POINTER); */
+
+     IF N = NULL THEN
+         RETURN (NULL);
+     ELSE IF N->NODE.KEY = K THEN
+         RETURN (N);
+     ELSE IF N->NODE.KEY < K THEN
+         RETURN (NDSRCH(N->NODE.RIGHT, K));
+     ELSE IF N->NODE.KEY > K THEN
+         RETURN (NDSRCH(N->NODE.LEFT, K));
+ END NDSRCH;
+
+
+ /*
+  *node_print
+  */
+ NDPRNT: PROCEDURE (N, INDENT) RECURSIVE;
+     DCL N POINTER;
+     DCL INDENT FIXED BINARY(15);
+
+     /* %INCLUDE TREEMAPS(TMNODES); */
+
+     DCL (I, NEW_INDENT) FIXED BINARY(15);
+     DCL NULL BUILTIN;
+     DCL K FIXED BIN(15);
+     DCL C CHAR(80);
+
+     IF N = NULL THEN;     /* Do nothing; avoid 'not' in ASCII. */
+     ELSE DO;
+          K = N->NODE.KEY;
+          C = N->NODE.CONTENT;
+          NEW_INDENT = INDENT + 4;
+ 
+          /* The above is necessary. Otherwise the value passed to the
+           * recursive CALL is 0.  Something to do with BINARY
+           * vs. DECIMAL, I presume.
+           */
+ 
+          /* PUT SKIP LIST (INDENT, (INDENT + 4), NEW_INDENT, K, C); */
+          PUT SKIP EDIT ((' ' DO I = 1 TO INDENT), K, ' ==> ', C)
+                        ((INDENT)A, F(6), A(5), A);
+          CALL NDPRNT(N->NODE.LEFT,  NEW_INDENT);
+          CALL NDPRNT(N->NODE.RIGHT, NEW_INDENT);
+     END;
+ END NDPRNT;
+
+ /*
+  * External API
+  *
+  * Parameters shared by the entries are declared before hand.
+  */
+
+ GO TO TMPKG_END;               /* Everything beyond this point is
+                                 * not to be executed, unless one of
+                                 * the entries is invokek explicitely
+                                 */
+
+ DCL ID CHAR(80);
+ DCL TM POINTER;
+ DCL K  FIXED BINARY(15);
+ DCL C  CHAR(80);
+
+ /* Declare correspondence between internal function/subroutine and
+  * external entry.
+  */
+ DCL (TM_NEW_TREEMAP, TMNEWTM) ENTRY (CHAR(80))
+                               RETURNS (POINTER);
+ DCL (TM_INSERT, TMINSER) ENTRY (POINTER, FIXED BIN(15), CHAR(80))
+                          RETURNS (POINTER);
+ DCL (TM_SEARCH, TMSRCH) ENTRY (POINTER, FIXED BIN(15), CHAR(80))
+                         RETURNS (BIT(1));
+ DCL (TM_PRINT,  TMPRNT) ENTRY (POINTER);
+ 
+ 
+ TMNEWTM: ENTRY (ID) RETURNS (POINTER);
+     RETURN (TM_NEW_TREEMAP(ID));
+
+ TMINSER: ENTRY (TM, K, C) RETURNS (POINTER);
+      RETURN (TM_INSERT(TM, K, C));
+
+ TMSRCH: ENTRY (TM, K, C) RETURNS (BIT(1));
+     RETURN (TM_SEARCH(TM, K, C));
+
+ TMPRNT: ENTRY (TM);
+     CALL TM_PRINT(TM);
+     RETURN;
+ 
+ PUT SKIP LIST ('TMPKG END: This should not have been printed.');
+ TMPKG_END: END TMPKG;
+
+ /* end of file -- tmpkg.pl1 */
